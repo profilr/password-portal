@@ -1,6 +1,7 @@
 package io.github.profilr.passwordportal;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -24,10 +25,11 @@ public class DatabasePasswordResetHandler implements PasswordResetHandler {
 	private static final String PROPERTY_PASSWORD = "hibernate.hikari.password";
 	private static final String PROPERTY_URL = "hibernate.hikari.dataSource.url";
 
-	MysqlDataSource datasource;
+	private MysqlDataSource datasource;
 
-	@SneakyThrows
-	public DatabasePasswordResetHandler(ServletContext context) {
+	@Override
+	@SneakyThrows(IOException.class)
+	public void init(ServletContext context) throws InvalidConfigurationException {
 		log.info("Reading in hibernate.properties");
 		String path = context.getRealPath(HIBERNATE_PROPERTIES_PATH);
 		Properties properties = new Properties();
@@ -53,6 +55,7 @@ public class DatabasePasswordResetHandler implements PasswordResetHandler {
 		}
 	}
 
+	@Override
 	public void checkPassword(String username, String oldPassword) throws IncorrectPasswordException {
 		log.info("Testing password");
 		datasource.setUser(username);
@@ -73,7 +76,7 @@ public class DatabasePasswordResetHandler implements PasswordResetHandler {
 	}
 
 	@Override
-	@SneakyThrows
+	@SneakyThrows(SQLException.class)
 	public void resetPassword(String username, String oldPassword, String newPassword) {
 		log.info("Changing database password");
 		datasource.setUser(username);
