@@ -28,7 +28,6 @@ public class DatabasePasswordResetHandler implements PasswordResetHandler {
 	private MysqlDataSource datasource;
 
 	@Override
-	@SneakyThrows(IOException.class)
 	public void init(ServletContext context) throws InvalidConfigurationException {
 		log.info("Reading in hibernate.properties");
 		String path = context.getRealPath(HIBERNATE_PROPERTIES_PATH);
@@ -52,6 +51,10 @@ public class DatabasePasswordResetHandler implements PasswordResetHandler {
 			datasource = new MysqlDataSource();
 			datasource.setUrl(url);
 			log.info("Successfully initialized");
+		} catch (IOException e) {
+			log.error("Error initializing", e);
+			throw new InvalidConfigurationException("IOException in reading properties file. "
+					+ "Please emsure that there is a valid hibernate.properties file in the WEB-INF directory.", e);
 		}
 	}
 
