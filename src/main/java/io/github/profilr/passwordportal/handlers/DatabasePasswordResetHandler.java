@@ -1,4 +1,4 @@
-package io.github.profilr.passwordportal;
+package io.github.profilr.passwordportal.handlers;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -13,6 +13,8 @@ import javax.servlet.ServletContext;
 
 import com.mysql.cj.jdbc.MysqlDataSource;
 
+import io.github.profilr.passwordportal.IncorrectPasswordException;
+import io.github.profilr.passwordportal.InvalidConfigurationException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 

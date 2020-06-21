@@ -1,6 +1,9 @@
-package io.github.profilr.passwordportal;
+package io.github.profilr.passwordportal.handlers;
 
 import javax.servlet.ServletContext;
+
+import io.github.profilr.passwordportal.IncorrectPasswordException;
+import io.github.profilr.passwordportal.InvalidConfigurationException;
 
 public interface PasswordResetHandler {
 	
