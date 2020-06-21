@@ -1,19 +1,19 @@
 <html>
 	<head>
 		<title>Profilr Password Portal</title>
-		<link rel="stylesheet" href="maintenance-style.css">
+		<link rel="stylesheet" href="password-style.css">
 	</head>
 	<body>
 		<div id="navbar">
 			<ul>
-				<li class="inert"><img src="maintenance-logo.png"></li>
+				<li class="inert"><img src="password-logo.png"></li>
 			</ul>
 		</div>
 		<div class="bodyContainer">
 			<h1>Password Reset</h1>
 			<p>Text Here</p>
 			<h3>Please enter the following information:</h3>
-			<div style="padding: 10px">
+			<div class="fixed-width">
 				<table>
 					<tr>
 						<td><label for="username">Username</label></td>
@@ -32,8 +32,13 @@
 						<td><input name="confirmPassword" type="password"></td>
 					</tr>
 				</table>
-				<div id="button" class="button blue">
-					<p>Reset Password</p>
+				<div class="flex-center">
+					<div id="button" class="button blue">
+						Reset Password
+					</div>
+					<div class="warning-box" style="background-color: orange">
+						WARNING<br>SOME REALLY LONG TEXT THAT WILL ABSOLUTELY OVERFLOW
+					</div>
 				</div>
 			</div>
 		</div>
