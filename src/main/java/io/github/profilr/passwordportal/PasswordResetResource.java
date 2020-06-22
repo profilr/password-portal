@@ -6,10 +6,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.ServletContext;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -40,7 +43,12 @@ public class PasswordResetResource {
 				for (ClassInfo info : scanResult.getClassesImplementing(interfaceName)) {
 					Class<? extends PasswordResetHandler> clazz = info.loadClass(PasswordResetHandler.class);
 					PasswordResetHandler handler = clazz.getConstructor().newInstance();
-					handler.init(context);
+					try {
+						handler.init(context);
+					} catch (InvalidConfigurationException e) {
+						handlers = null; // reset cached handlers
+						throw e;
+					}
 					handlers.add(handler);
 				}
 
@@ -50,6 +58,8 @@ public class PasswordResetResource {
 	}
 	
 	@POST
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces(MediaType.TEXT_PLAIN)
 	public Response reset(@FormParam("username") String username,
 						  @FormParam("oldPassword") String oldPassword,
 						  @FormParam("newPassword") String newPassword) {
@@ -59,17 +69,18 @@ public class PasswordResetResource {
 				handler.checkPassword(username, oldPassword);
 			for (PasswordResetHandler handler : handlers)
 				handler.resetPassword(username, oldPassword, newPassword);
-			return Response.noContent()
+			return Response.ok("Success")
 						   .build();
-		} catch (InvalidConfigurationException | RuntimeException e) {
+		} catch (InvalidConfigurationException | IncorrectPasswordException | RuntimeException e) {
 			StringWriter sw = new StringWriter();
 			PrintWriter pw = new PrintWriter(sw);
-			e.printStackTrace(pw);
-			return Response.serverError()
+			pw.printf("%s: %s", e.getClass().getName(), e.getMessage());
+			Throwable c = e.getCause();
+			if (c != null)
+				pw.printf("%nCaused by %s: %s", c.getClass().getName(), c.getMessage());
+			return Response.status(e instanceof IncorrectPasswordException ?
+									Status.UNAUTHORIZED : Status.INTERNAL_SERVER_ERROR)
 						   .entity(sw.toString())
-						   .build();
-		} catch (IncorrectPasswordException e) {
-			return Response.status(Status.UNAUTHORIZED)
 						   .build();
 		}
 	}

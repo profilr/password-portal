@@ -18,7 +18,6 @@ public class TestHandler implements PasswordResetHandler {
 	@Override
 	public void checkPassword(String username, String oldPassword) throws IncorrectPasswordException {
 		log.info("checkPassword({}, {})", username, oldPassword);
-		throw new IncorrectPasswordException();
 	}
 
 	@Override
