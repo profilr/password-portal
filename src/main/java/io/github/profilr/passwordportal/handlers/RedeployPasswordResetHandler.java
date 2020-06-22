@@ -9,7 +9,7 @@ import io.github.profilr.passwordportal.InvalidConfigurationException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class RedeployPasswordResetHandler implements PasswordResetHandler {
+class RedeployPasswordResetHandler implements PasswordResetHandler {
 
 	static final String DUMMY_PASSWORD = "{{{PASSWORD}}}";
 	static final String HIBERNATE_PROPERTIES_PATH = "/WEB-INF/hibernate.properties";

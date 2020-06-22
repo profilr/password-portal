@@ -14,6 +14,6 @@
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>Jersey Web Application</servlet-name>
-		<url-pattern>/reset-handler</url-pattern>
+		<url-pattern>/reset</url-pattern>
 	</servlet-mapping>
 </web-app>

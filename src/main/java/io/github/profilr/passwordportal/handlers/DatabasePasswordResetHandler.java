@@ -19,7 +19,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class DatabasePasswordResetHandler implements PasswordResetHandler {
+class DatabasePasswordResetHandler implements PasswordResetHandler {
 
 	private static final String DUMMY_PASSWORD = RedeployPasswordResetHandler.DUMMY_PASSWORD;
 	private static final String HIBERNATE_PROPERTIES_PATH = RedeployPasswordResetHandler.HIBERNATE_PROPERTIES_PATH;
