@@ -2,6 +2,7 @@
 	<head>
 		<title>Profilr Password Portal</title>
 		<link rel="stylesheet" href="password-style.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 	</head>
 	<body>
 		<div id="navbar">
@@ -11,36 +12,90 @@
 		</div>
 		<div class="bodyContainer">
 			<h1>Password Reset</h1>
-			<p>Text Here</p>
+			<p>
+				Please select a password that
+				<ul>
+					<li>has between 10 and 30 characters</li>
+					<li>uses uppercase and lowercase letters as well as digits</li>
+					<li>is not a password used elsewhere</li>
+				</ul>
+			</p>
 			<h3>Please enter the following information:</h3>
 			<div class="fixed-width">
-				<table>
-					<tr>
-						<td><label for="username">Username</label></td>
-						<td><input name="username" value="profilr" disabled="true"></td>
-					</tr>
-					<tr>
-						<td><label for="oldPassword">Old Password</label></td>
-						<td><input name="oldPassword" type="password"></td>
-					</tr>
-					<tr>
-						<td><label for="newPassword">New Password</label></td>
-						<td><input name="newPassword" type="password"></td>
-					</tr>
-					<tr>
-						<td><label for="confirmPassword">Confirm Password</label></td>
-						<td><input name="confirmPassword" type="password"></td>
-					</tr>
-				</table>
+				<form id="form">
+					<table>
+						<tr>
+							<td><label for="username">Username</label></td>
+							<td><input name="username" value="profilr" disabled="true"></td>
+						</tr>
+						<tr>
+							<td><label for="oldPassword">Old Password</label></td>
+							<td><input name="oldPassword" type="password"></td>
+						</tr>
+						<tr>
+							<td><label for="newPassword">New Password</label></td>
+							<td><input name="newPassword" type="password"></td>
+						</tr>
+						<tr>
+							<td><label for="confirmPassword">Confirm Password</label></td>
+							<td><input name="confirmPassword" type="password"></td>
+						</tr>
+					</table>
+				</form>
 				<div class="flex-center">
 					<div id="button" class="button blue">
 						Reset Password
 					</div>
-					<div class="warning-box" style="background-color: orange">
-						WARNING<br>SOME REALLY LONG TEXT THAT WILL ABSOLUTELY OVERFLOW
-					</div>
+					<div class="message-box" id="message-box" style="display: none" />
 				</div>
 			</div>
 		</div>
+		<script type="text/javascript">
+			function flash(element) { /*https://stackoverflow.com/a/9097349*/ element.fadeOut(100).fadeIn(100); }
+			function msg(message, color) {
+				$("#message-box").show();
+				let e = $("#message-box").text(message);
+				e.html(e.html().replace(/\n/g,'<br/>'));
+				$("#message-box").css('background-color', color);
+				flash($("#message-box"));
+			}
+			function critical(message) { msg(message, "red"); }
+			function warn(message) { msg(message, "orange"); }
+			function success() { msg("Password changed successfully!", "lightgreen"); }
+			
+			const strong_password_regex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{10,30}$/;
+			$("#button").click(() => {
+				let username		= $("#form input[name=username]").val(),
+					oldPassword		= $("#form input[name=oldPassword]").val(),
+					newPassword		= $("#form input[name=newPassword]").val(),
+					confirmPassword = $("#form input[name=confirmPassword]").val();
+				if (!strong_password_regex.test(newPassword))
+					warn("New password does not meet above requirements.");
+				else if (newPassword !== confirmPassword)
+					warn("New and confirmed password do not match.");
+				else {
+					$.ajax({
+						"method": "POST",
+						"url": "/reset",
+						"headers": { "Content-Type": "application/x-www-form-urlencoded" },
+						"data": {
+							"username": username,
+							"oldPassword": oldPassword,
+							"newPassword": newPassword
+						}
+					}).fail(req => {
+						if (req.status === 401)
+							warn("Incorrect old password specified.");
+						else
+							critical("Configuration Error:\n"+req.responseText+"\nPlease contact profilrteam@gmail.com");
+					}).done(resp => {
+						$("#form input[name=oldPassword]").val("");
+						$("#form input[name=newPassword]").val("");
+						$("#form input[name=confirmPassword]").val("");
+						success();
+					});
+				}
+			})
+		</script>
 	</body>
 </html>

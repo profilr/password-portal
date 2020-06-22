@@ -13,6 +13,7 @@ public class TestHandler2 implements PasswordResetHandler {
 	@Override
 	public void init(ServletContext context) throws InvalidConfigurationException {
 		log.info("init()");
+		throw new InvalidConfigurationException("Test", new RuntimeException("nice job bud"));
 	}
 
 	@Override
