@@ -74,10 +74,10 @@ public class PasswordResetResource {
 		} catch (InvalidConfigurationException | IncorrectPasswordException | RuntimeException e) {
 			StringWriter sw = new StringWriter();
 			PrintWriter pw = new PrintWriter(sw);
-			pw.printf("%s: %s", e.getClass().getName(), e.getMessage());
+			pw.printf("%s: %s", e.getClass().getSimpleName(), e.getMessage());
 			Throwable c = e.getCause();
 			if (c != null)
-				pw.printf("%nCaused by %s: %s", c.getClass().getName(), c.getMessage());
+				pw.printf("%nCaused by %s: %s", c.getClass().getSimpleName(), c.getMessage());
 			return Response.status(e instanceof IncorrectPasswordException ?
 									Status.UNAUTHORIZED : Status.INTERNAL_SERVER_ERROR)
 						   .entity(sw.toString())

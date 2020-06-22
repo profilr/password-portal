@@ -10,9 +10,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TestHandler implements PasswordResetHandler {
 
+	private static boolean failOnce = true;
+	
 	@Override
 	public void init(ServletContext context) throws InvalidConfigurationException {
 		log.info("init()");
+		if (failOnce) {
+			failOnce = false;
+			throw new InvalidConfigurationException("Initialization Fail (try again)");
+		}
 	}
 
 	@Override

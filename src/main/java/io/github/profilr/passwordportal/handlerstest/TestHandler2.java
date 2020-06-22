@@ -10,15 +10,20 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TestHandler2 implements PasswordResetHandler {
 
+	private static boolean failOnce = true;
+
 	@Override
 	public void init(ServletContext context) throws InvalidConfigurationException {
 		log.info("init()");
-		throw new InvalidConfigurationException("Test", new RuntimeException("nice job bud"));
 	}
 
 	@Override
 	public void checkPassword(String username, String oldPassword) throws IncorrectPasswordException {
 		log.info("checkPassword({}, {})", username, oldPassword);
+		if (failOnce) {
+			failOnce = false;
+			throw new IncorrectPasswordException(new RuntimeException("Password Fail (try again)"));
+		}
 	}
 
 	@Override
