@@ -1,7 +1,7 @@
 package io.github.profilr.passwordportal.handlers;
 
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -22,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 class DatabasePasswordResetHandler implements PasswordResetHandler {
 
 	private static final String DUMMY_PASSWORD = RedeployPasswordResetHandler.DUMMY_PASSWORD;
-	private static final String HIBERNATE_PROPERTIES_PATH = RedeployPasswordResetHandler.HIBERNATE_PROPERTIES_PATH;
 	private static final String PROPERTY_DATASOURCE_NAME = "hibernate.hikari.dataSourceClassName";
 	private static final String PROPERTY_PASSWORD = "hibernate.hikari.password";
 	private static final String PROPERTY_URL = "hibernate.hikari.dataSource.url";
@@ -30,12 +29,11 @@ class DatabasePasswordResetHandler implements PasswordResetHandler {
 	private MysqlDataSource datasource;
 
 	@Override
-	public void init(ServletContext context) throws InvalidConfigurationException {
+	public void init(ServletContext nobodywantsyou) throws InvalidConfigurationException {
 		log.info("Reading in hibernate.properties");
-		String path = context.getRealPath(HIBERNATE_PROPERTIES_PATH);
-		Properties properties = new Properties();
-		try (FileInputStream inputStream = new FileInputStream(path)) {
-			properties.load(inputStream);
+		try (InputStream is = getClass().getResourceAsStream("hibernate.properties")) {
+			Properties properties = new Properties();
+			properties.load(is);
 			String datasourceName = properties.getProperty(PROPERTY_DATASOURCE_NAME),
 					password = properties.getProperty(PROPERTY_PASSWORD), url = properties.getProperty(PROPERTY_URL);
 			if (!MysqlDataSource.class.getName().equals(datasourceName))

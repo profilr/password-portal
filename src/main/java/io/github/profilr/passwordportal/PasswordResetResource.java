@@ -33,8 +33,7 @@ public class PasswordResetResource {
 	@SneakyThrows(ReflectiveOperationException.class)
 	private List<PasswordResetHandler> getHandlers() throws InvalidConfigurationException {
 		if (handlers == null) {
-//			String packageName = PasswordResetHandler.class.getPackage().getName();
-			String packageName = "io.github.profilr.passwordportal.handlerstest";
+			String packageName = PasswordResetHandler.class.getPackage().getName();
 			String interfaceName = PasswordResetHandler.class.getName();
 			handlers = new ArrayList<>();
 			try (ScanResult scanResult = new ClassGraph().enableAllInfo()
