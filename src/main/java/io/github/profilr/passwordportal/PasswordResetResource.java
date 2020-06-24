@@ -5,13 +5,11 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -25,9 +23,6 @@ import lombok.SneakyThrows;
 @Path("/")
 public class PasswordResetResource {
 
-	@Context
-	ServletContext context;
-	
 	private static List<PasswordResetHandler> handlers;
 	
 	@SneakyThrows(ReflectiveOperationException.class)
@@ -43,7 +38,7 @@ public class PasswordResetResource {
 					Class<? extends PasswordResetHandler> clazz = info.loadClass(PasswordResetHandler.class);
 					PasswordResetHandler handler = clazz.getConstructor().newInstance();
 					try {
-						handler.init(context);
+						handler.init();
 					} catch (InvalidConfigurationException e) {
 						handlers = null; // reset cached handlers
 						throw e;

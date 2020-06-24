@@ -1,7 +1,5 @@
 package io.github.profilr.passwordportal.handlerstest;
 
-import javax.servlet.ServletContext;
-
 import io.github.profilr.passwordportal.IncorrectPasswordException;
 import io.github.profilr.passwordportal.InvalidConfigurationException;
 import io.github.profilr.passwordportal.handlers.PasswordResetHandler;
@@ -13,7 +11,7 @@ public class TestHandler2 implements PasswordResetHandler {
 	private static boolean failOnce = true;
 
 	@Override
-	public void init(ServletContext context) throws InvalidConfigurationException {
+	public void init() throws InvalidConfigurationException {
 		log.info("init()");
 	}
 

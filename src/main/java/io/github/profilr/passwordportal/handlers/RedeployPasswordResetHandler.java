@@ -8,8 +8,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Properties;
 
-import javax.servlet.ServletContext;
-
 import io.github.profilr.passwordportal.InvalidConfigurationException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +22,7 @@ class RedeployPasswordResetHandler implements PasswordResetHandler {
 	private File destination;
 
 	@Override
-	public void init(ServletContext context) throws InvalidConfigurationException {
+	public void init() throws InvalidConfigurationException {
 		log.info("Reading in redeploy.properties");
 		try (InputStream is = getClass().getResourceAsStream("redeploy.properties")) {
 			Properties properties = new Properties();

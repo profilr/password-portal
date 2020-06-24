@@ -9,8 +9,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
 
-import javax.servlet.ServletContext;
-
 import com.mysql.cj.jdbc.MysqlDataSource;
 
 import io.github.profilr.passwordportal.IncorrectPasswordException;
@@ -29,7 +27,7 @@ class DatabasePasswordResetHandler implements PasswordResetHandler {
 	private MysqlDataSource datasource;
 
 	@Override
-	public void init(ServletContext nobodywantsyou) throws InvalidConfigurationException {
+	public void init() throws InvalidConfigurationException {
 		log.info("Reading in hibernate.properties");
 		try (InputStream is = getClass().getResourceAsStream("hibernate.properties")) {
 			Properties properties = new Properties();
