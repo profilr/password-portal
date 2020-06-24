@@ -15,7 +15,7 @@ public class TestHandler implements PasswordResetHandler {
 		log.info("init()");
 		if (failOnce) {
 			failOnce = false;
-			throw new InvalidConfigurationException("Initialization Fail (try again)");
+			throw new InvalidConfigurationException("Initialization Fail Test (try again)");
 		}
 	}
 

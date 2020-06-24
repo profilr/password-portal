@@ -20,7 +20,7 @@ public class TestHandler2 implements PasswordResetHandler {
 		log.info("checkPassword({}, {})", username, oldPassword);
 		if (failOnce) {
 			failOnce = false;
-			throw new IncorrectPasswordException(new RuntimeException("Password Fail (try again)"));
+			throw new IncorrectPasswordException(new RuntimeException("Password Fail Test (try again)"));
 		}
 	}
 

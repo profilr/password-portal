@@ -15,12 +15,15 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ClassGraphException;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
 import io.github.profilr.passwordportal.handlers.PasswordResetHandler;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 @Path("/")
+@Slf4j
 public class PasswordResetResource {
 
 	private static List<PasswordResetHandler> handlers;
@@ -28,6 +31,7 @@ public class PasswordResetResource {
 	@SneakyThrows(ReflectiveOperationException.class)
 	private List<PasswordResetHandler> getHandlers() throws InvalidConfigurationException {
 		if (handlers == null) {
+			log.info("Initializing handlers list");
 			String packageName = PasswordResetHandler.class.getPackage().getName();
 			String interfaceName = PasswordResetHandler.class.getName();
 			handlers = new ArrayList<>();
@@ -36,16 +40,22 @@ public class PasswordResetResource {
 														 .scan()) {
 				for (ClassInfo info : scanResult.getClassesImplementing(interfaceName)) {
 					Class<? extends PasswordResetHandler> clazz = info.loadClass(PasswordResetHandler.class);
-					PasswordResetHandler handler = clazz.getConstructor().newInstance();
+					log.info("Initializing handler {}", clazz.getSimpleName());
 					try {
+						PasswordResetHandler handler = clazz.getConstructor().newInstance();
 						handler.init();
-					} catch (InvalidConfigurationException e) {
+						handlers.add(handler);
+					} catch (ReflectiveOperationException | InvalidConfigurationException e) {
 						handlers = null; // reset cached handlers
+						log.error("Error initializing handler "+clazz.getSimpleName(), e);
 						throw e;
 					}
-					handlers.add(handler);
 				}
 
+			} catch (ReflectiveOperationException | ClassGraphException e) {
+				log.error("Error collecting handlers", e);
+				handlers = null;
+				throw e;
 			}
 		}
 		return handlers;
