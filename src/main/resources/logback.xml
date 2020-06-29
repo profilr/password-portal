@@ -6,7 +6,7 @@
 		class="ch.qos.logback.core.ConsoleAppender">
 		<target>System.err</target>
 		<encoder>
-			<pattern>%-5level %d{MM/dd/yyyy HH:mm:ss} %-36.36logger{36} %msg%n</pattern>
+			<pattern>%-5level %d{MM/dd/yyyy HH:mm:ss} PW-PORTAL %-40.40logger{40} %msg%n</pattern>
 		</encoder>
 	</appender>
 

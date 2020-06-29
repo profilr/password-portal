@@ -39,20 +39,20 @@ public class PasswordResetResource {
 														 .whitelistPackages(packageName)
 														 .scan()) {
 				for (ClassInfo info : scanResult.getClassesImplementing(interfaceName)) {
-					Class<? extends PasswordResetHandler> clazz = info.loadClass(PasswordResetHandler.class);
-					log.info("Initializing handler {}", clazz.getSimpleName());
 					try {
-						PasswordResetHandler handler = clazz.getConstructor().newInstance();
+						Class<? extends PasswordResetHandler> clazz = info.loadClass(PasswordResetHandler.class);
+						log.info("Initializing handler {}", clazz.getSimpleName());
+						PasswordResetHandler handler = clazz.getDeclaredConstructor().newInstance();
 						handler.init();
 						handlers.add(handler);
-					} catch (ReflectiveOperationException | InvalidConfigurationException e) {
+					} catch (ReflectiveOperationException | IllegalArgumentException | InvalidConfigurationException e) {
 						handlers = null; // reset cached handlers
-						log.error("Error initializing handler "+clazz.getSimpleName(), e);
+						log.error("Error initializing handler "+info.getSimpleName(), e);
 						throw e;
 					}
 				}
 
-			} catch (ReflectiveOperationException | ClassGraphException e) {
+			} catch (ClassGraphException e) {
 				log.error("Error collecting handlers", e);
 				handlers = null;
 				throw e;
@@ -68,14 +68,19 @@ public class PasswordResetResource {
 						  @FormParam("oldPassword") String oldPassword,
 						  @FormParam("newPassword") String newPassword) {
 		try {
+			log.info("New request for user '{}'", username);
 			handlers = getHandlers();
+			log.debug("Obtained handlers");
 			for (PasswordResetHandler handler : handlers)
 				handler.checkPassword(username, oldPassword);
+			log.debug("Checked password");
 			for (PasswordResetHandler handler : handlers)
 				handler.resetPassword(username, oldPassword, newPassword);
+			log.info("Request processed successfully");
 			return Response.ok("Success")
 						   .build();
-		} catch (InvalidConfigurationException | IncorrectPasswordException | RuntimeException e) {
+		} catch (Exception e) {
+			log.debug("Unable to process request because of exception", e);
 			StringWriter sw = new StringWriter();
 			PrintWriter pw = new PrintWriter(sw);
 			pw.printf("%s: %s", e.getClass().getSimpleName(), e.getMessage());

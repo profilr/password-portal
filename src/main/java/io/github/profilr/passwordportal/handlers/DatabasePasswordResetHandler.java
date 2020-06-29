@@ -17,10 +17,12 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-class DatabasePasswordResetHandler implements PasswordResetHandler {
+public class DatabasePasswordResetHandler implements PasswordResetHandler {
 
+	private static final String DUMMY_USERNAME = RedeployPasswordResetHandler.DUMMY_USERNAME;
 	private static final String DUMMY_PASSWORD = RedeployPasswordResetHandler.DUMMY_PASSWORD;
 	private static final String PROPERTY_DATASOURCE_NAME = "hibernate.hikari.dataSourceClassName";
+	private static final String PROPERTY_USERNAME = "hibernate.hikari.username";
 	private static final String PROPERTY_PASSWORD = "hibernate.hikari.password";
 	private static final String PROPERTY_URL = "hibernate.hikari.dataSource.url";
 
@@ -28,31 +30,42 @@ class DatabasePasswordResetHandler implements PasswordResetHandler {
 
 	@Override
 	public void init() throws InvalidConfigurationException {
-		log.info("Reading in hibernate.properties");
-		try (InputStream is = getClass().getResourceAsStream("hibernate.properties")) {
+		log.info("Initializing DatabasePasswordResetHandler");
+		log.debug("Reading in hibernate.properties");
+		try (InputStream is = getClass().getClassLoader().getResourceAsStream("hibernate.properties")) {
+			log.debug("Obtained hibernate.properties input stream");
+			if (is == null) {
+				log.error("Unable to find hibernate.properties, ensure it is present in src/main/resources");
+				throw new InvalidConfigurationException("Unable to load hibernate.properties. Please check log file");
+			}
 			Properties properties = new Properties();
 			properties.load(is);
+			log.debug("Loaded hibernate.properties into Properties object");
 			String datasourceName = properties.getProperty(PROPERTY_DATASOURCE_NAME),
-					password = properties.getProperty(PROPERTY_PASSWORD), url = properties.getProperty(PROPERTY_URL);
-			if (!MysqlDataSource.class.getName().equals(datasourceName))
-				throw new InvalidConfigurationException(
-						String.format("Invalid DataSource specified. The value of property `%s` must be `%s`",
-								PROPERTY_DATASOURCE_NAME, MysqlDataSource.class.getName()));
-			if (url == null)
-				throw new InvalidConfigurationException(
-						String.format("No URL specified. The value of property `%s` must be a valid JDBC URL",
-								PROPERTY_URL, MysqlDataSource.class.getName()));
-			if (!DUMMY_PASSWORD.equals(password))
-				throw new InvalidConfigurationException(
-						String.format("Incorrect dummy password. The value of property `%s` must be `%s`",
-								PROPERTY_PASSWORD, DUMMY_PASSWORD));
+				   username = properties.getProperty(PROPERTY_USERNAME),
+				   password = properties.getProperty(PROPERTY_PASSWORD),
+				   url = properties.getProperty(PROPERTY_URL);
+			if (!MysqlDataSource.class.getName().equals(datasourceName)) {
+				log.error("Invalid DataSource specified: Property '{}' must be '{}' (only MySQL is supported at the moment)", PROPERTY_DATASOURCE_NAME, MysqlDataSource.class.getName());
+				throw new InvalidConfigurationException("Invalid DataSource specified in hibernate.properties. Please check log file");
+			}
+			if (url == null) {
+				log.error("No URL specified: Property '{}' must contain the JDBC URL", PROPERTY_URL);
+				throw new InvalidConfigurationException("No URL specified in hibernate.properties. Please check log file");
+			}
+			if (!DUMMY_PASSWORD.equals(password) || !DUMMY_USERNAME.equals(username)) {
+				log.error("Incorrect dummy username and/or dummy password specified: Property '{}' should be '{}' and property '{}' should be '{}'",
+						PROPERTY_USERNAME, DUMMY_USERNAME, PROPERTY_PASSWORD, DUMMY_PASSWORD);
+				throw new InvalidConfigurationException("Incorrect placeholder credentials specified in configuration. Please check log file");
+			}
+			log.debug("Read and validated all properties");
 			datasource = new MysqlDataSource();
 			datasource.setUrl(url);
+			log.debug("Created DataSource (without any credentials yet)");
 			log.info("Successfully initialized");
-		} catch (IOException e) {
-			log.error("Error initializing", e);
-			throw new InvalidConfigurationException("IOException in reading properties file. "
-					+ "Please emsure that there is a valid hibernate.properties file in the WEB-INF directory.", e);
+		} catch (IOException | RuntimeException e) {
+			log.error("Unhandled exception in initialization (ensure valid hibernate.properties file in src/main/resources)", e);
+			throw new InvalidConfigurationException("Unhandled exception. Please check log file", e);
 		}
 	}
 
@@ -61,18 +74,21 @@ class DatabasePasswordResetHandler implements PasswordResetHandler {
 		log.info("Testing password");
 		datasource.setUser(username);
 		datasource.setPassword(oldPassword);
+		log.debug("Attempting connection");
 		try (Connection c = datasource.getConnection();
 				Statement s = c.createStatement();
 				ResultSet rs = s.executeQuery("SELECT 1")) {
-			log.info("Connection successful");
+			log.debug("Connection successful, testing query return");
 			rs.first();
 			if (rs.getInt(1) != 1) {
-				log.error("SELECT 1 returns {} ??", rs.getInt(1));
+				log.error("'SELECT 1' returns {} from database!!?!", rs.getInt(1));
 				throw new SQLException("Weird Return Value");
 			}
+			log.debug("Query success");
 			log.info("Password correct");
 		} catch (SQLException e) {
-			throw new IncorrectPasswordException(e);
+			log.info("Password incorrect");
+			throw new IncorrectPasswordException();
 		}
 	}
 
@@ -82,12 +98,17 @@ class DatabasePasswordResetHandler implements PasswordResetHandler {
 		log.info("Changing database password");
 		datasource.setUser(username);
 		datasource.setPassword(oldPassword);
+		log.debug("Attempting connection");
 		try (Connection c = datasource.getConnection();
-				PreparedStatement ps = c.prepareStatement("UPDATE USER ? IDENTIFIED BY ?")) {
+				PreparedStatement ps = c.prepareStatement("ALTER USER ? IDENTIFIED BY ?")) {
+			log.debug("Connection successful, running 'ALTER USER' update");
 			ps.setString(1, username);
 			ps.setString(2, newPassword);
 			ps.executeUpdate();
 			log.info("Database Password Update Success");
+		} catch (SQLException e) {
+			log.error("Unhandled Exception encountered when changing password", e);
+			throw e;
 		}
 	}
 

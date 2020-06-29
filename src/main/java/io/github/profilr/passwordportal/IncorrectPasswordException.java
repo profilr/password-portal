@@ -7,9 +7,5 @@ public class IncorrectPasswordException extends Exception {
 	public IncorrectPasswordException() {
 		super("Incorrect Username or Password");
 	}
-	
-	public IncorrectPasswordException(Throwable cause) {
-		super("Incorrect Username or Password", cause);
-	}
 
 }
