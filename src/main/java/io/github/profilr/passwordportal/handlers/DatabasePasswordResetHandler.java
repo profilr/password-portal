@@ -100,10 +100,9 @@ public class DatabasePasswordResetHandler implements PasswordResetHandler {
 		datasource.setPassword(oldPassword);
 		log.debug("Attempting connection");
 		try (Connection c = datasource.getConnection();
-				PreparedStatement ps = c.prepareStatement("ALTER USER ? IDENTIFIED BY ?")) {
+				PreparedStatement ps = c.prepareStatement("SET PASSWORD = ?")) {
 			log.debug("Connection successful, running 'ALTER USER' update");
-			ps.setString(1, username);
-			ps.setString(2, newPassword);
+			ps.setString(1, newPassword);
 			ps.executeUpdate();
 			log.info("Database Password Update Success");
 		} catch (SQLException e) {
